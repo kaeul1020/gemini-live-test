@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gemini Live API Realtime Test</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="call-panel">
+        <div class="status-row">
+          <span id="statusDot" class="status-dot"></span>
+          <span id="statusText">대기 중</span>
+        </div>
+
+        <div class="caller">
+          <div id="personaAvatar" class="avatar">엄</div>
+          <p id="personaSubtitle" class="eyebrow">안전 귀가 통화</p>
+          <h1 id="personaTitle">엄마</h1>
+          <p id="timer" class="timer">00:00</p>
+        </div>
+
+        <div class="meters">
+          <div>
+            <label for="micMeter">마이크</label>
+            <meter id="micMeter" min="0" max="1" value="0"></meter>
+          </div>
+          <div>
+            <label for="speakerMeter">스피커</label>
+            <meter id="speakerMeter" min="0" max="1" value="0"></meter>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button id="connectButton" class="primary">연결 시작</button>
+          <button id="muteButton" disabled>마이크 끄기</button>
+          <button id="hangupButton" class="danger" disabled>종료</button>
+        </div>
+      </section>
+
+      <section class="settings-panel">
+        <label>
+          Persona
+          <select id="personaSelect">
+            <option value="mom">엄마</option>
+            <option value="dad">아빠</option>
+            <option value="friend">친구</option>
+            <option value="partner">애인</option>
+            <option value="coworker">직장동료</option>
+            <option value="guardian">보호자</option>
+          </select>
+        </label>
+
+        <label>
+          상황 모드
+          <select id="scenarioSelect">
+            <option value="walkHome">밤길 귀가</option>
+            <option value="escape">불편한 자리 탈출</option>
+            <option value="transaction">중고거래/낯선 만남</option>
+            <option value="taxi">택시/차량 이동</option>
+          </select>
+        </label>
+
+        <label>
+          Gemini API Key
+          <input id="apiKeyInput" type="password" autocomplete="off" placeholder="AI Studio API 키 입력" />
+        </label>
+
+        <label>
+          Model
+          <input id="modelInput" value="gemini-3.1-flash-live-preview" />
+        </label>
+
+        <label>
+          Voice
+          <select id="voiceSelect">
+            <option value="Kore">Kore</option>
+            <option value="Puck">Puck</option>
+            <option value="Charon">Charon</option>
+            <option value="Fenrir">Fenrir</option>
+            <option value="Aoede">Aoede</option>
+            <option value="Leda">Leda</option>
+            <option value="Orus">Orus</option>
+            <option value="Zephyr">Zephyr</option>
+          </select>
+        </label>
+
+        <label>
+          System instruction
+          <textarea id="systemInput" rows="5">너는 사용자의 안전 귀가를 돕는 한국어 AI 통화 상대야. 실제 사람과 통화하듯 짧고 자연스럽게 대답해. 사용자가 말을 끊으면 즉시 멈추고 먼저 들어. 답변은 보통 1~2문장으로 유지해.</textarea>
+        </label>
+
+        <div class="text-row">
+          <input id="textInput" placeholder="텍스트도 보내보기" disabled />
+          <button id="sendTextButton" disabled>전송</button>
+        </div>
+
+        <div class="notice">
+          테스트용이라 API 키를 로컬 프록시 서버로 전달합니다. 실제 앱에서는 ephemeral token 또는 인증된 백엔드 프록시가 필요합니다.
+        </div>
+      </section>
+
+      <section class="transcript-panel">
+        <h2>Transcript / Events</h2>
+        <div id="log" class="log"></div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
