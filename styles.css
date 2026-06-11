@@ -77,18 +77,35 @@ textarea {
   text-align: center;
 }
 
-.avatar {
+.avatar-stage {
+  position: relative;
+  width: 168px;
+  height: 168px;
+  margin: 0 auto 24px;
+}
+
+#avatarStage {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(26, 38, 62, 0.16);
+}
+
+.avatar-badge {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
   display: grid;
   place-items: center;
-  width: 132px;
-  height: 132px;
-  margin: 0 auto 24px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
+  border: 2px solid #ffffff;
   background: linear-gradient(145deg, #1f6feb, #13a977);
   color: #ffffff;
-  font-size: 38px;
+  font-size: 17px;
   font-weight: 800;
-  letter-spacing: 0;
 }
 
 .eyebrow {
@@ -159,6 +176,16 @@ button.danger {
   border-color: #d94343;
   background: #d94343;
   color: white;
+}
+
+button.ghost {
+  margin-top: 10px;
+  width: 100%;
+  border-style: dashed;
+  color: #536178;
+  background: #f8fafd;
+  font-size: 13px;
+  padding: 9px 12px;
 }
 
 .settings-panel,

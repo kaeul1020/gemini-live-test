@@ -15,7 +15,10 @@
         </div>
 
         <div class="caller">
-          <div id="personaAvatar" class="avatar">엄</div>
+          <div class="avatar-stage">
+            <div id="avatarStage"></div>
+            <div id="personaAvatar" class="avatar-badge">엄</div>
+          </div>
           <p id="personaSubtitle" class="eyebrow">안전 귀가 통화</p>
           <h1 id="personaTitle">엄마</h1>
           <p id="timer" class="timer">00:00</p>
@@ -37,6 +40,7 @@
           <button id="muteButton" disabled>마이크 끄기</button>
           <button id="hangupButton" class="danger" disabled>종료</button>
         </div>
+        <button id="lipsyncDemoButton" class="ghost">립싱크 데모 (API 키 불필요)</button>
       </section>
 
       <section class="settings-panel">
@@ -107,6 +111,7 @@
       </section>
     </main>
 
+    <script src="./avatar.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

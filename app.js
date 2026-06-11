@@ -14,6 +14,7 @@ const els = {
   connect: document.querySelector("#connectButton"),
   mute: document.querySelector("#muteButton"),
   hangup: document.querySelector("#hangupButton"),
+  lipsyncDemo: document.querySelector("#lipsyncDemoButton"),
   text: document.querySelector("#textInput"),
   sendText: document.querySelector("#sendTextButton"),
   log: document.querySelector("#log"),
@@ -41,7 +42,10 @@ const playback = {
   nextTime: 0,
   sources: new Set(),
   level: 0,
+  bus: null,
 };
+
+const avatar = new LipsyncAvatar(document.querySelector("#avatarStage"));
 
 const personas = {
   mom: {
@@ -122,6 +126,7 @@ els.persona.value = localStorage.getItem("geminiLivePersona") || "mom";
 els.scenario.value = localStorage.getItem("geminiLiveScenario") || "walkHome";
 
 els.connect.addEventListener("click", start);
+els.lipsyncDemo.addEventListener("click", runLipsyncDemo);
 els.hangup.addEventListener("click", stop);
 els.mute.addEventListener("click", toggleMute);
 els.sendText.addEventListener("click", sendText);
@@ -157,6 +162,8 @@ async function start() {
   try {
     audioContext = new AudioContext();
     await audioContext.resume();
+    playback.bus = avatar.attach(audioContext);
+    playback.nextTime = 0; // 이전 세션의 예약 시각이 남아 첫 턴이 무음이 되는 것 방지
 
     micStream = await navigator.mediaDevices.getUserMedia({
       audio: {
@@ -201,6 +208,7 @@ function applyPersonaPreset() {
   els.personaTitle.textContent = persona.title;
   els.personaAvatar.textContent = persona.avatar;
   els.personaSubtitle.textContent = persona.subtitle;
+  avatar.setPersona(els.persona.value);
   els.voice.value = persona.voice;
   els.system.value = instruction;
   localStorage.setItem("geminiLivePersona", els.persona.value);
@@ -351,6 +359,7 @@ function handleServerContent(content) {
 
 function playPcm24(base64Audio) {
   if (!audioContext) return;
+  if (audioContext.state === "suspended") audioContext.resume();
 
   const samples = base64ToInt16Array(base64Audio);
   const audioBuffer = audioContext.createBuffer(1, samples.length, OUTPUT_RATE);
@@ -366,7 +375,7 @@ function playPcm24(base64Audio) {
 
   const source = audioContext.createBufferSource();
   source.buffer = audioBuffer;
-  source.connect(audioContext.destination);
+  source.connect(playback.bus || audioContext.destination);
 
   const startTime = Math.max(audioContext.currentTime + 0.03, playback.nextTime);
   source.start(startTime);
@@ -415,6 +424,8 @@ function stop() {
 
 function cleanup(shouldLog) {
   clearPlaybackQueue();
+  avatar.stop();
+  playback.bus = null;
 
   if (micProcessor) {
     micProcessor.disconnect();
@@ -435,6 +446,7 @@ function cleanup(shouldLog) {
   muted = false;
   setupReady = false;
   sentAudioChunks = 0;
+  playback.nextTime = 0;
   els.micMeter.value = 0;
   els.speakerMeter.value = 0;
 
@@ -463,6 +475,78 @@ async function postJson(path, body) {
   }
 
   return response.json();
+}
+
+// API 키/서버 없이 아바타 립싱크만 확인하는 데모.
+// "말소리 비슷한" 합성음(음절 단위로 피치·음량이 바뀌는 톤)을 재생한다.
+let demoRunning = false;
+
+async function runLipsyncDemo() {
+  if (demoRunning) return;
+  if (audioContext) {
+    log("통화 중에는 데모를 실행할 수 없습니다.", "error");
+    return;
+  }
+
+  demoRunning = true;
+  els.lipsyncDemo.disabled = true;
+  log("립싱크 데모 시작 — 아바타 입을 보세요.");
+
+  const ctx = new AudioContext();
+  await ctx.resume();
+  const bus = avatar.attach(ctx);
+
+  const master = ctx.createGain();
+  master.gain.value = 0;
+  master.connect(bus);
+
+  const osc = ctx.createOscillator();
+  osc.type = "sawtooth";
+  const filter = ctx.createBiquadFilter();
+  filter.type = "lowpass";
+  osc.connect(filter);
+  filter.connect(master);
+  osc.start();
+
+  // 음절 시퀀스: [피치Hz, 필터Hz(모음 밝기), 길이ms, 쉼ms]
+  const syllables = [];
+  let clock = ctx.currentTime + 0.1;
+  const phraseCount = 3;
+  for (let p = 0; p < phraseCount; p += 1) {
+    const sylCount = 4 + Math.floor(Math.random() * 5);
+    for (let s = 0; s < sylCount; s += 1) {
+      syllables.push([
+        130 + Math.random() * 90,
+        500 + Math.random() * 2600,
+        110 + Math.random() * 150,
+        20 + Math.random() * 60,
+      ]);
+    }
+    syllables.push([0, 0, 0, 420 + Math.random() * 380]); // 구절 사이 쉼
+  }
+
+  for (const [pitch, bright, len, gap] of syllables) {
+    if (pitch > 0) {
+      osc.frequency.setValueAtTime(pitch, clock);
+      filter.frequency.setValueAtTime(bright, clock);
+      master.gain.setValueAtTime(0, clock);
+      master.gain.linearRampToValueAtTime(0.22, clock + 0.03);
+      master.gain.setValueAtTime(0.22, clock + len / 1000 - 0.03);
+      master.gain.linearRampToValueAtTime(0, clock + len / 1000);
+      clock += len / 1000;
+    }
+    clock += gap / 1000;
+  }
+
+  const totalMs = (clock - ctx.currentTime) * 1000 + 300;
+  window.setTimeout(() => {
+    osc.stop();
+    avatar.stop();
+    ctx.close();
+    demoRunning = false;
+    els.lipsyncDemo.disabled = false;
+    log("립싱크 데모 종료.");
+  }, totalMs);
 }
 
 function setUiConnecting() {
