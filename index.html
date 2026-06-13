@@ -35,12 +35,22 @@
           </div>
         </div>
 
+        <div class="danger-panel">
+          <div class="danger-head">
+            <span>위험도</span>
+            <span id="dangerLevel" class="danger-badge safe">안전</span>
+          </div>
+          <div class="danger-track"><div id="dangerFill" class="danger-fill"></div></div>
+          <p id="dangerReason" class="danger-reason">통화를 시작하면 실시간으로 위험 신호를 분석합니다.</p>
+        </div>
+
         <div class="controls">
           <button id="connectButton" class="primary">연결 시작</button>
           <button id="muteButton" disabled>마이크 끄기</button>
           <button id="hangupButton" class="danger" disabled>종료</button>
         </div>
         <button id="lipsyncDemoButton" class="ghost">립싱크 데모 (API 키 불필요)</button>
+        <button id="saveTurnButton" class="ghost" disabled>마지막 응답 WAV 저장 (VC 테스트용)</button>
       </section>
 
       <section class="settings-panel">
@@ -76,6 +86,22 @@
           <input id="modelInput" value="gemini-3.1-flash-live-preview" />
         </label>
 
+        <fieldset class="safety-box">
+          <legend>🛡️ 안전 설정</legend>
+          <label>
+            세이프워드 (위급 시 말할 단어/문장)
+            <input id="safeWordInput" placeholder="예: 짜장면" />
+          </label>
+          <label>
+            분석 모델 (위험 점수·세이프워드 검증용)
+            <input id="analysisModelInput" value="gemini-flash-latest" />
+          </label>
+          <label class="checkbox-row">
+            <input id="toneEnabledInput" type="checkbox" />
+            음성 톤 분석 사용 (모듈 D · 스트레치)
+          </label>
+        </fieldset>
+
         <label>
           Voice
           <select id="voiceSelect">
@@ -88,6 +114,21 @@
             <option value="Orus">Orus</option>
             <option value="Zephyr">Zephyr</option>
           </select>
+        </label>
+
+        <label class="checkbox-row">
+          <input id="vcEnabledInput" type="checkbox" />
+          VC 사용 — Gemini 음성을 ElevenLabs 보이스 음색으로 변환
+        </label>
+
+        <label>
+          ElevenLabs API Key (VC용)
+          <input id="vcKeyInput" type="password" autocomplete="off" placeholder="VC 사용 시에만 필요" />
+        </label>
+
+        <label>
+          ElevenLabs Voice ID (VC용)
+          <input id="vcVoiceInput" placeholder="예: 21m00Tcm4TlvDq8ikWAM (클론/라이브러리 보이스 ID)" />
         </label>
 
         <label>
@@ -110,6 +151,27 @@
         <div id="log" class="log"></div>
       </section>
     </main>
+
+    <div id="reportModal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <p id="reportTrigger" class="modal-eyebrow">위험 신호 감지</p>
+        <h2 id="reportTitle">신고를 시작할까요?</h2>
+        <p id="reportDetail" class="modal-detail"></p>
+        <div class="modal-gps">
+          <span>📍 현재 위치</span>
+          <span id="reportGps">확인 중…</span>
+        </div>
+        <div class="modal-countdown">
+          <span id="reportCountdown">10</span>초 후 자동 신고
+        </div>
+        <div class="modal-actions">
+          <button id="reportCancel" class="ghost-light">괜찮아요 (취소)</button>
+          <button id="reportNow" class="danger">지금 신고</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="reportToast" class="report-toast hidden">🚨 보호자에게 신고가 전송되었습니다</div>
 
     <script src="./avatar.js"></script>
     <script src="./app.js"></script>
